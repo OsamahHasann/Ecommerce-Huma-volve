@@ -1,3 +1,7 @@
+import 'package:dio/dio.dart';
+import 'package:ecommerce_app_huma_volve/core/network/api_claint.dart';
+import 'package:ecommerce_app_huma_volve/features/auth/sign_up/models/SignUpReqModel.dart';
+import 'package:ecommerce_app_huma_volve/features/auth/sign_up/services/sign_up_services.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/custom_text_field.dart';
@@ -17,12 +21,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final TextEditingController nameController;
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
-
+  late final SignUpServices signUpServices;
+  late final ApiClient apiClient;
+  bool isLoading = false;
   @override
   void initState() {
     nameController = TextEditingController();
     emailController = TextEditingController();
     passwordController = TextEditingController();
+    apiClient = ApiClient();
+    signUpServices = SignUpServices(apiClient);
 
     super.initState();
   }
@@ -33,6 +41,44 @@ class _SignUpScreenState extends State<SignUpScreen> {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _signUp() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        isLoading = true;
+      });
+      try {
+        final response = await signUpServices.signUp(
+          SignUpReqModel(
+            email: emailController.text,
+            name: nameController.text,
+            password: passwordController.text,
+            avatar:
+                "https://drive.google.com/file/d/1Ghv56rGabQy_JtHR1RYkZKnzignS4JXe/view?usp=drivesdk",
+          ),
+        );
+        print('Sign up successful: ${response.name}');
+        print('Sign up successful: ${response.email}');
+        setState(() {
+          isLoading = false;
+        });
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+      } on DioException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Sign up failed: ${e.response?.data['message'] ?? e.message}',
+            ),
+          ),
+        );
+      }
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -52,15 +98,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 32),
                 Text(
                   'Create Account',
-                  style: Theme.of(context).textTheme.displayLarge
-                      ?.copyWith(fontSize: 32),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.displayLarge?.copyWith(fontSize: 32),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Sign up to get started',
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(fontSize: 16),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 48),
@@ -111,14 +159,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 PrimaryButton(
                   text: 'Sign Up',
                   onPressed: () async {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginScreen(),
-                        ),
-                      );
-                    }
+                    _signUp();
                   },
                 ),
                 const SizedBox(height: 24),
@@ -131,11 +172,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         Navigator.pushReplacement(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (
-                              context,
-                              animation,
-                              secondaryAnimation,
-                            ) => const LoginScreen(),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const LoginScreen(),
                             transitionsBuilder:
                                 (
                                   context,

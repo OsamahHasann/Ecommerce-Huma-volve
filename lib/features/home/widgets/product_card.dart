@@ -57,8 +57,8 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 12,
-                    right: 12,
+                    top: 10,
+                    right: 10,
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
@@ -78,7 +78,7 @@ class ProductCard extends StatelessWidget {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.end,

@@ -1,4 +1,6 @@
-
+import 'package:dio/dio.dart';
+import 'package:ecommerce_app_huma_volve/core/network/api_claint.dart';
+import 'package:ecommerce_app_huma_volve/features/auth/login/services/login_services.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/custom_text_field.dart';
@@ -18,11 +20,16 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
+  late final LoginServices loginServices;
+  late final ApiClient apiClient;
+  bool isLoading = false;
 
   @override
   void initState() {
     emailController = TextEditingController();
     passwordController = TextEditingController();
+    apiClient = ApiClient();
+    loginServices = LoginServices(apiClient);
 
     super.initState();
   }
@@ -32,6 +39,39 @@ class _LoginScreenState extends State<LoginScreen> {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        isLoading = true;
+      });
+      try {
+        final response = await loginServices.login(
+          emailController.text,
+          passwordController.text,
+        );
+        print('Login successful: ${response.accessToken}');
+        print('Login successful: ${response.refreshToken}');
+        setState(() {
+          isLoading = false;
+        });
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => MainNavigationScreen()),
+        );
+      } on DioException catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Login failed: ${e.response?.data['message'] ?? e.message}',
+            ),
+          ),
+        );
+      }
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -51,15 +91,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
                 Text(
                   'Welcome Back!',
-                  style: Theme.of(context).textTheme.displayLarge
-                      ?.copyWith(fontSize: 32),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.displayLarge?.copyWith(fontSize: 32),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Login to continue your shopping',
-                  style: Theme.of(context).textTheme.bodyMedium
-                      ?.copyWith(fontSize: 16),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 64),
@@ -107,15 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
                 PrimaryButton(
+                  isLoading: isLoading,
                   text: 'Login',
-                  onPressed: () {
-                    if (_formKey.currentState?.validate() ?? false) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(
-                          builder: (context) => MainNavigationScreen(),
-                        ),
-                      );
-                    }
+                  onPressed: () async {
+                    _login();
                   },
                 ),
                 const SizedBox(height: 24),
@@ -128,11 +165,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushReplacement(
                           context,
                           PageRouteBuilder(
-                            pageBuilder: (
-                              context,
-                              animation,
-                              secondaryAnimation,
-                            ) => const SignUpScreen(),
+                            pageBuilder:
+                                (context, animation, secondaryAnimation) =>
+                                    const SignUpScreen(),
                             transitionsBuilder:
                                 (
                                   context,
