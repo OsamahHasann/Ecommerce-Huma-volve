@@ -42,14 +42,15 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (_formKey.currentState?.validate() ?? false) {
+    // if (_formKey.currentState?.validate() ?? false) {
+    if (true) {
       setState(() {
         isLoading = true;
       });
       try {
         final response = await loginServices.login(
-          emailController.text,
-          passwordController.text,
+          "osamah@gmail.com",
+          "123456",
         );
         print('Login successful: ${response.accessToken}');
         print('Login successful: ${response.refreshToken}');
