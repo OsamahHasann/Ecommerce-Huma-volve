@@ -1,8 +1,8 @@
-class CategoryModel {
-  int? id;
-  String? name;
 
-  CategoryModel({this.id, this.name});
+import 'package:ecommerce_app_huma_volve/features/home/domain/entities/category_entity.dart';
+
+class CategoryModel extends CategoryEntity {
+   CategoryModel({super.id, super.name});
 
   CategoryModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];

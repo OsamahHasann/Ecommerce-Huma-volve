@@ -5,13 +5,14 @@ import '../theme.dart';
 // ignore: must_be_immutable
 class PrimaryButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final Widget widget;
+  final VoidCallback? onPressed;
   bool isLoading;
   PrimaryButton({
     super.key,
     required this.text,
     required this.onPressed,
-    this.isLoading = false,
+    this.isLoading = false, required this.widget,
   });
 
   @override
@@ -47,14 +48,7 @@ class PrimaryButton extends StatelessWidget {
         ),
         child: isLoading
             ? CircularProgressIndicator(color: Colors.white)
-            : Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                ),
-              ),
+            : widget,
       ),
     );
   }

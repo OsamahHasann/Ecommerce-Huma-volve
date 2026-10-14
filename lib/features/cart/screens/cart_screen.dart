@@ -90,6 +90,7 @@ class CartScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   PrimaryButton(
                     text: 'Checkout',
+                    
                     onPressed: () {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -99,7 +100,7 @@ class CartScreen extends StatelessWidget {
                           backgroundColor: AppTheme.primary,
                         ),
                       );
-                    },
+                    }, widget: Text("Checkout"),
                   ),
                 ],
               ),

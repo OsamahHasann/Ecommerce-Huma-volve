@@ -12,11 +12,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    
+    return 
+     MaterialApp(
       title: 'E-Commerce App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const SplashScreen(),
+      home:  SplashScreen(),
     );
   }
 }
