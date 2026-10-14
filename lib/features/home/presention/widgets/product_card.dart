@@ -1,6 +1,5 @@
 import 'package:ecommerce_app_huma_volve/features/home/domain/entities/product_entity.dart';
 import 'package:flutter/material.dart';
-import '../../../../core/dummy_data.dart';
 import '../../../../core/theme.dart';
 import '../../../details/screens/product_details_screen.dart';
 
