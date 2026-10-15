@@ -6,6 +6,8 @@ import 'package:ecommerce_app_huma_volve/features/home/data/models/product_model
 
 class HomeRemoteDataSourceImp implements HomeDataSource {
   late final ApiClient apiClient;
+  // int limit = 10;
+  // int offset = 0;
   HomeRemoteDataSourceImp(this.apiClient);
   @override
   Future<List<CategoryModel>> getCategories() async {
@@ -20,9 +22,13 @@ class HomeRemoteDataSourceImp implements HomeDataSource {
   }
 
   @override
-  Future<List<ProductModel>> getProducts(int cateId) async {
+  Future<List<ProductModel>> getProducts(int cateId,{required int limit, required int offset}) async {
     final response = await apiClient.dio.get(
       "${ApiEndpoints.categories}/$cateId/${ApiEndpoints.products}",
+      queryParameters: {
+        "limit" : limit,
+        "offset" : offset
+      }
     );
     final jsonData = response.data;
     final List<ProductModel> products = jsonData

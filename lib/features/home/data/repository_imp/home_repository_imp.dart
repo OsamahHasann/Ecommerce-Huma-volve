@@ -8,6 +8,7 @@ import 'package:ecommerce_app_huma_volve/features/home/domain/repository/home_re
 
 class HomeRepositoryImp implements HomeRepository {
   final HomeDataSource homeDataSource;
+
   HomeRepositoryImp(this.homeDataSource);
   @override
   Future<Either<Failure, List<CategoryEntity>>> getCategories() async {
@@ -20,9 +21,9 @@ class HomeRepositoryImp implements HomeRepository {
   }
 
   @override
-  Future<Either<Failure, List<ProductEntity>>> getProducts(int cateId) async {
+  Future<Either<Failure, List<ProductEntity>>> getProducts(int cateId,{required int limit, required int offset}) async {
     try {
-      final products = await homeDataSource.getProducts(cateId);
+      final products = await homeDataSource.getProducts(cateId, limit: limit, offset: offset);
       return Right(products as List<ProductEntity>);
     } catch (e) {
       return Left(ErrorHandler.handle(e.toString()));

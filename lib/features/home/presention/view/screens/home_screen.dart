@@ -31,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late final GetProductsUseCase getProductsUseCase;
   late final HomeCubit homeCubit;
   int _selectedCategoryIndex = 0;
+  late ScrollController scrollController;
   @override
   void initState() {
     context.read<HomeCubit>().getCategories();
@@ -39,16 +40,30 @@ class _HomeScreenState extends State<HomeScreen> {
     homeRepository = HomeRepositoryImp(homeDataSource);
     getCategoriesUseCase = GetCategoriesUseCase(homeRepository);
     getProductsUseCase = GetProductsUseCase(homeRepository);
+    scrollController = ScrollController();
+    scrollController.addListener(listener);
     super.initState();
+  }
+
+  void listener() {
+    final pixels = scrollController.position.pixels;
+    final max = scrollController.position.maxScrollExtent;
+    final triggerDistnace = 200;
+
+    if (pixels >= max - triggerDistnace) {
+      context.read<HomeCubit>().loadingMoreProducts();
+      // print("pixels is $pixels and max is $max");
+      debugPrint("call API");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return
-    Scaffold(
+    return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(
         child: CustomScrollView(
+          controller: scrollController,
           slivers: [
             SliverToBoxAdapter(
               child: Padding(
@@ -140,9 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 32),
                     BlocBuilder<HomeCubit, HomeState>(
                       buildWhen: (previous, current) {
-                        if (current is ProductsLoding ||
+                        if (current is ProductsLoading ||
                             current is ProductsError ||
-                            current is ProductsSuccess) {
+                            current is ProductsSuccess ||
+                            current is ProductsMoreLoading ||
+                            current is ProductsMoreError) {
                           return false;
                         } else {
                           return true;
@@ -191,8 +208,16 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             BlocBuilder<HomeCubit, HomeState>(
+              buildWhen: (previous, current) {
+                if (current is ProductsMoreLoading ||
+                    current is ProductsMoreError) {
+                  return false;
+                } else {
+                  return true;
+                }
+              },
               builder: (context, state) {
-                if (state is ProductsLoding) {
+                if (state is ProductsLoading) {
                   return const SliverToBoxAdapter(
                     child: Center(child: CircularProgressIndicator()),
                   );
@@ -222,11 +247,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               },
             ),
+            BlocBuilder<HomeCubit,HomeState>(
+              builder: (context, state) {
+                if (state is ProductsMoreLoading) {
+                  return const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsetsGeometry.all(10),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  );
+                }  else {
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                }
+              },
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
           ],
         ),
       ),
     );
-    
   }
 }

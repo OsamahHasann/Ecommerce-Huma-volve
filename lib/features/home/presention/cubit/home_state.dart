@@ -17,7 +17,7 @@ class CategorisError extends HomeState {
   CategorisError(this.errorMessage);
 }
 
-class ProductsLoding extends HomeState {}
+class ProductsLoading extends HomeState {}
 
 class ProductsSuccess extends HomeState {
   List<ProductEntity> products;
@@ -27,4 +27,11 @@ class ProductsSuccess extends HomeState {
 class ProductsError extends HomeState {
   String errorMessage;
   ProductsError(this.errorMessage);
+}
+
+class ProductsMoreLoading extends HomeState {}
+
+class ProductsMoreError extends HomeState {
+   String errorMessage;
+  ProductsMoreError(this.errorMessage);
 }
