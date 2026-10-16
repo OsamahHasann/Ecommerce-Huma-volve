@@ -1,3 +1,4 @@
+import 'package:ecommerce_app_huma_volve/core/routing/app_routing.dart';
 import 'package:flutter/material.dart';
 
 import 'core/theme.dart';
@@ -14,11 +15,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     
     return 
-     MaterialApp(
+     MaterialApp.router(
+      routerConfig: appRouting,
       title: 'E-Commerce App',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home:  SplashScreen(),
+      // home:  SplashScreen(),
     );
   }
 }

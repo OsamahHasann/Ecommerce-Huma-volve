@@ -1,21 +1,94 @@
+import 'package:ecommerce_app_huma_volve/core/network/api_claint.dart';
+import 'package:ecommerce_app_huma_volve/core/theme.dart';
+import 'package:ecommerce_app_huma_volve/core/widgets/primary_button.dart';
+import 'package:ecommerce_app_huma_volve/features/details/Data/data_source/details_remote_data_source_im.dart';
+import 'package:ecommerce_app_huma_volve/features/details/Data/repository/details_repository_im.dart';
+import 'package:ecommerce_app_huma_volve/features/details/Domain/use_case/get_product_by_id_use_case.dart';
+import 'package:ecommerce_app_huma_volve/features/details/widgets/share_plus_buttom.dart';
 import 'package:ecommerce_app_huma_volve/features/home/domain/entities/product_entity.dart';
 import 'package:flutter/material.dart';
-import '../../../core/theme.dart';
-import '../../../core/widgets/primary_button.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
-  final ProductEntity product;
+  final ProductEntity? product;
+  final int? productId;
 
-  const ProductDetailsScreen({super.key, required this.product});
+  const ProductDetailsScreen({super.key, this.product,required this.productId});
 
   @override
   State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  late final GetProductByIdUseCase _getProductByIdUseCase;
+  ProductEntity? _product;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    final apiClient = ApiClient();
+    final remoteDataSource = DetailsRemoteDataSourceIm(apiClient: apiClient);
+    final repository = DetailsRepositoryIm(remoteDataSource);
+    _getProductByIdUseCase = GetProductByIdUseCase(repository);
+
+    if (widget.product != null) {
+      _product = widget.product;
+    }
+
+    final id = widget.productId ?? widget.product?.id;
+    if (id != null && widget.product == null) {
+      _loadProductById(id);
+    }
+  }
+
+  Future<void> _loadProductById(int productId) async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final result = await _getProductByIdUseCase.execute(productId);
+
+    result.fold(
+      (failure) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = failure.failureMessage;
+        });
+      },
+      (product) {
+        setState(() {
+          _product = product;
+          _isLoading = false;
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final currentProduct = _product ?? widget.product;
+    final imageUrl =
+        currentProduct?.images != null && currentProduct!.images!.isNotEmpty
+        ? currentProduct.images![0]
+        : 'https://via.placeholder.com/600x800?text=No+Image';
+
+    if (_isLoading && currentProduct == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (currentProduct == null) {
+      return Scaffold(
+        body: Center(
+          child: Text(
+            _errorMessage ?? 'Product not found',
+            style: const TextStyle(fontSize: 16),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: CustomScrollView(
@@ -36,6 +109,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
+              SharePulsButtom(productsId: widget.productId.toString() ,),
               IconButton(
                 icon: Container(
                   padding: const EdgeInsets.all(8),
@@ -51,14 +125,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Hero(
-                tag: 'product-${widget.product.id}',
-                child: Image.network(
-                  widget.product.images![0],
-                  fit: BoxFit.cover,
-                ),
+                tag: 'product-${currentProduct.id}',
+                child: Image.network(imageUrl, fit: BoxFit.cover),
               ),
             ),
           ),
+          SliverToBoxAdapter(child: const SizedBox(height: 15)),
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
@@ -77,79 +149,40 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            widget.product.title!,
-                            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                              fontSize: 28,
-                              height: 1.2,
-                            ),
+                            currentProduct.title ?? '',
+                            style: Theme.of(context).textTheme.headlineLarge
+                                ?.copyWith(fontSize: 28, height: 1.2),
                           ),
                         ),
                         const SizedBox(width: 16),
                         Text(
-                          '\$${widget.product.price}',
-                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            color: AppTheme.primary,
-                            fontSize: 24,
-                          ),
+                          '\$${(currentProduct.price ?? 0).toStringAsFixed(2)}',
+                          style: Theme.of(context).textTheme.headlineLarge
+                              ?.copyWith(color: AppTheme.primary, fontSize: 24),
                         ),
                       ],
                     ),
                     const SizedBox(height: 24),
                     Text(
                       'Description',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.titleLarge
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      widget.product.description!,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        height: 1.6,
-                        fontSize: 16,
-                      ),
+                      currentProduct.description ?? '',
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(height: 1.6, fontSize: 16),
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Select Color',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // ColorSelector(
-                    //   colors: widget.product.,
-                    //   selectedColor: _selectedColor,
-                    //   onColorSelected: (color) {
-                    //     setState(() {
-                    //       _selectedColor = color;
-                    //     });
-                    //   },
-                    // ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Select Size',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // SizeSelector(
-                    //   sizes: widget.product.sizes,
-                    //   selectedSize: _selectedSize,
-                    //   onSizeSelected: (size) {
-                    //     setState(() {
-                    //       _selectedSize = size;
-                    //     });
-                    //   },
-                    // ),
                     const SizedBox(height: 32),
                     PrimaryButton(
-                      text: 'Add to Cart',
+                     
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('${widget.product.title} added to cart'),
+                            content: Text(
+                              '${currentProduct.title} added to cart',
+                            ),
                             behavior: SnackBarBehavior.floating,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
@@ -157,7 +190,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             backgroundColor: AppTheme.primary,
                           ),
                         );
-                      }, widget: Text("Add to Cart"),
+                      }, text: '', widget: Text('Add to Cart'),
                     ),
                     const SizedBox(height: 24),
                   ],
